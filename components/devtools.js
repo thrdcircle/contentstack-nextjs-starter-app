@@ -5,7 +5,6 @@ const DynamicReactJson = dynamic(import("react-json-view"), { ssr: false });
 
 function filterObject(inputObject) {
   const unWantedProps = [
-    "uid",
     "_version",
     "ACL",
     "_in_progress",

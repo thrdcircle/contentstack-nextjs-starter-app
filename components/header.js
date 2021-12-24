@@ -8,12 +8,12 @@ export default function Header(props) {
   const router = useRouter();
   return (
     <header className="header">
-      <div className="note-div">
+      <div className="note-div" {...header.notification_bar.$?.announcement_text}>
         {header.notification_bar.show_announcement ? typeof header.notification_bar.announcement_text === "string"
           && (
             parse(header.notification_bar.announcement_text)
           ) : (
-          <div style={{ visibility: "hidden" }}>Devtools section</div>
+            <div style={{ visibility: "hidden" }}>Devtools section</div>
         )}
         <span
           className="devtools"
@@ -31,6 +31,7 @@ export default function Header(props) {
               src={header.logo.url}
               alt={header.title}
               title={header.title}
+              {...header.logo.$?.url}
             />
           </Link>
         </div>
@@ -49,6 +50,7 @@ export default function Header(props) {
                         ? "active"
                         : ""
                     }
+                    {...list.$?.label}
                   >
                     {list.label}
                   </a>
