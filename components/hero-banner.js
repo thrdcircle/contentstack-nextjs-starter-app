@@ -2,12 +2,12 @@ import React from "react";
 import Link from "next/link";
 
 export default function HeroBanner(props) {
-  const banner = props.hero_banner;
+  const banner = props?.hero_banner;
   return (
     <div
       className="hero-banner"
       style={{
-        background: banner.bg_color ? banner.bg_color : "",
+        background: banner?.bg_color ? banner.bg_color : "",
       }}
     >
       <div className={`${props.title === "about" ? "about" : "home"}-content`}>
@@ -20,14 +20,14 @@ export default function HeroBanner(props) {
             className={`hero-description ${props.title === "about"
               && "about-desc"}`}
           >
-            {banner.banner_description}
+            {banner?.banner_description}
           </p>
         ) : (
           ""
         )}
         {banner.call_to_action.title && banner.call_to_action.href ? (
-          <Link {...banner.call_to_action.$?.title} href={banner.call_to_action.href}>
-            <a className="btn tertiary-btn">{banner.call_to_action.title}</a>
+          <Link {...banner.call_to_action.$?.title} href={banner?.call_to_action.href}>
+            <a className="btn tertiary-btn">{banner?.call_to_action.title}</a>
           </Link>
         ) : (
           ""

@@ -9,6 +9,7 @@ import BlogSection from "./blog-section";
 import SectionBucket from "./section-bucket";
 import AboutSectionBucket from "./about-section-bucket";
 import SectionWithHtmlCode from "./section-with-html-code";
+import Widget from "./widget";
 
 export default function RenderComponents(props) {
   const {
@@ -16,6 +17,7 @@ export default function RenderComponents(props) {
   } = props;
   return (
     <div data-pageref={entryUid} data-contenttype={contentTypeUid} data-locale={locale}>
+      <Widget />
       {pageComponents?.map((component, key) => {
         if (component.hero_banner) {
           return blogsPage ? (

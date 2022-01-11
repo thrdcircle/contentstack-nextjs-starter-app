@@ -1,19 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import parse from 'html-react-parser';
+import store from '../redux/store';
 
 export default function Footer(props) {
   const { footer } = props;
+  const [getFooter, setFooter] = useState(footer);
+
+  store.subscribe(() => {
+    const check = store.getState().main;
+    if (check.footer === getFooter) {
+      setFooter(check.footer);
+    }
+  });
+
   return (
     <footer>
       <div className="max-width footer-div">
         <div className="col-quarter">
           <Link href="/" className="logo-tag">
             <img
-              {...footer.logo.$?.url}
-              src={footer.logo.url}
-              alt={footer.title}
-              title={footer.title}
+              {...getFooter.logo.$?.url}
+              src={getFooter.logo.url}
+              alt={getFooter.title}
+              title={getFooter.title}
               className="logo footer-logo"
             />
           </Link>
@@ -21,7 +31,7 @@ export default function Footer(props) {
         <div className="col-half">
           <nav>
             <ul className="nav-ul">
-              {footer.navigation.link?.map((menu) => (
+              {getFooter.navigation.link?.map((menu) => (
                 <li className="footer-nav-li" key={menu.title}>
                   <Link href={menu.href} {...menu.$?.title}>
                     {menu.title}
@@ -33,7 +43,7 @@ export default function Footer(props) {
         </div>
         <div className="col-quarter social-link">
           <div className="social-nav">
-            {footer.social.social_share?.map((social) => (
+            {getFooter.social.social_share?.map((social) => (
               <a
                 href={social.link.href}
                 title={social.link.title}
@@ -53,7 +63,7 @@ export default function Footer(props) {
         </div>
       </div>
       <div className="copyright">
-        {typeof footer.copyright === 'string' && parse(footer.copyright)}
+        {typeof getFooter.copyright === 'string' && parse(getFooter.copyright)}
       </div>
     </footer>
   );

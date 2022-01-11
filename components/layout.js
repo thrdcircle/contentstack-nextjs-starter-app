@@ -71,7 +71,7 @@ class Layout extends React.Component {
           <link rel="apple-touch-icon" href="/path/to/apple-touch-icon.png" />
           <meta name="theme-color" content="#317EFB" />
           <title>Contentstack-Nextjs-Starter-App</title>
-          {page.seo && page.seo.enable_search_indexing
+          {page && page.seo && page.seo.enable_search_indexing
             ? metaData(page.seo)
             : null}
         </Head>

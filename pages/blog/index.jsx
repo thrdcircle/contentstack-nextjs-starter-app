@@ -1,8 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable react/no-array-index-key */
-/* eslint-disable one-var */
-/* eslint-disable prefer-const */
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from 'react';
 import addEditableTags from '@contentstack/live-preview-utils';
 
@@ -11,7 +6,6 @@ import Link from 'next/link';
 
 import parse from 'html-react-parser';
 import Stack, { onEntryChange } from '../../sdk-plugin/index';
-import Layout from '../../components/layout';
 
 import RenderComponents from '../../components/render-components';
 import ArchiveRelative from '../../components/archive-relative';
@@ -35,8 +29,8 @@ async function getPageData(entryUrl) {
     contentTypeUid: 'footer',
     jsonRtePath: ['copyright'],
   });
-  let archivedRes = [],
-    blogListRes = [];
+  const archivedRes = [];
+  const blogListRes = [];
   bloglist[0].forEach((blogs) => {
     if (blogs.is_archived) {
       archivedRes.push(blogs);
@@ -63,16 +57,18 @@ export default function Blog({
 
   async function fetchData() {
     try {
-      const [headerRes, footerRes, entryRes, blogListRes, archivedRes] = await getPageData(entryUrl);
+      const [
+        headerRes,
+        footerRes,
+        entryRes,
+        blogListRes,
+        archivedRes,
+      ] = await getPageData(entryUrl);
       setHeader(headerRes[0][0]);
       setFooter(footerRes[0][0]);
       setEntry(entryRes[0]);
       setArchived(archivedRes);
       setBlogList(blogListRes);
-
-      addEditableTags(entryRes[0], 'page', true);
-      addEditableTags(headerRes[0][0], 'header', true);
-      addEditableTags(footerRes[0][0], 'footer', true);
     } catch (error) {
       console.error(error);
     }
@@ -81,15 +77,14 @@ export default function Blog({
     onEntryChange(() => fetchData());
   }, [onEntryChange]);
 
-  const list = getBlogList.concat(getArchived);
+  useEffect(() => {
+    addEditableTags(getEntry, "page", true);
+    addEditableTags(getHeader, "header", true);
+    addEditableTags(getFooter, "footer", true);
+  }, [getEntry, getFooter, getHeader]);
 
   return (
-    <Layout
-      header={getHeader}
-      footer={getFooter}
-      page={getEntry}
-      blogpost={list}
-    >
+    <>
       {getEntry.page_components && (
         <RenderComponents
           pageComponents={getEntry.page_components}
@@ -157,13 +152,18 @@ export default function Blog({
           <ArchiveRelative blogs={getArchived} />
         </div>
       </div>
-    </Layout>
+    </>
   );
 }
 
 export async function getServerSideProps(context) {
   try {
-    const [headerRes, footerRes, entryRes, blogList, archived] = await getPageData(context.resolvedUrl);
+    const [headerRes,
+      footerRes,
+      entryRes,
+      blogList,
+      archived,
+    ] = await getPageData(context.resolvedUrl);
     return {
       props: {
         entryUrl: context.resolvedUrl,

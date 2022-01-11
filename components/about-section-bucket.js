@@ -41,7 +41,7 @@ export default function AboutSectionBucket(props) {
       </div>
       <div className="mission-section">
         <div className="mission-content-top">
-          {sectionWithBuckets.buckets.map(
+          {sectionWithBuckets?.buckets.map(
             (bucket, index) => index < 2 && bucketContent(bucket, index),
           )}
         </div>

@@ -3,7 +3,6 @@ import addEditableTags from '@contentstack/live-preview-utils';
 import moment from 'moment';
 import parse from 'html-react-parser';
 import Stack, { onEntryChange } from '../../sdk-plugin/index';
-import Layout from '../../components/layout';
 
 import RenderComponents from '../../components/render-components';
 import ArchiveRelative from '../../components/archive-relative';
@@ -48,11 +47,6 @@ export default function BlogPost({
       setFooter(footerRes[0][0]);
       setEntry(entryRes[0]);
       setBanner(bannerRes[0]);
-
-      addEditableTags(entryRes[0], 'blog_post', true);
-      addEditableTags(bannerRes[0], 'page', true);
-      addEditableTags(headerRes[0][0], 'header', true);
-      addEditableTags(footerRes[0][0], 'footer', true);
     } catch (error) {
       console.error(error);
     }
@@ -62,13 +56,15 @@ export default function BlogPost({
     onEntryChange(() => fetchData());
   }, [onEntryChange]);
 
+  useEffect(() => {
+    addEditableTags(getEntry, 'blog_post', true);
+    addEditableTags(getBanner, 'page', true);
+    addEditableTags(getHeader, 'header', true);
+    addEditableTags(getFooter, 'footer', true);
+  }, [getEntry, getFooter, getHeader, getBanner]);
+
   return (
-    <Layout
-      header={getHeader}
-      footer={getFooter}
-      page={getBanner}
-      blogpost={getEntry}
-    >
+    <>
       {banner.page_components && (
         <RenderComponents
           pageComponents={getBanner.page_components}
@@ -95,7 +91,7 @@ export default function BlogPost({
         <div className="blog-column-right">
           <div className="related-post">
             {getBanner.page_components[2].widget && (
-              <h2 {...getEntry.page_components[2].widget.$?.title_h2}>
+              <h2>
                 {getBanner.page_components[2].widget.title_h2}
               </h2>
             )}
@@ -108,7 +104,7 @@ export default function BlogPost({
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 }
 export async function getServerSideProps(context) {

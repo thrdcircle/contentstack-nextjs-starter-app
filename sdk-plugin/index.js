@@ -2,40 +2,45 @@ import * as contentstack from 'contentstack';
 import * as Utils from '@contentstack/utils';
 
 import ContentstackLivePreview from '@contentstack/live-preview-utils';
+import getConfig from 'next/config';
+const { publicRuntimeConfig } = getConfig();
+const envConfig = process.env.CONTENTSTACK_API_KEY
+  ? process.env
+  : publicRuntimeConfig;
 
-const Stack = contentstack.Stack({
-  api_key: process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY,
-  delivery_token: process.env.NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN,
-  environment: process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT,
-  region: process.env.NEXT_PUBLIC_CONTENTSTACK_REGION
-    ? process.env.NEXT_PUBLIC_CONTENTSTACK_REGION
-    : 'us',
+const Obj = {
+  api_key: envConfig.CONTENTSTACK_API_KEY,
+  delivery_token: envConfig.CONTENTSTACK_DELIVERY_TOKEN,
+  environment: envConfig.CONTENTSTACK_ENVIRONMENT,
+  region: envConfig.CONTENTSTACK_REGION ? envConfig.CONTENTSTACK_REGION : 'us',
   live_preview: {
     enable: true,
-    management_token: process.env.NEXT_PUBLIC_CONTENTSTACK_MANAGEMENT_TOKEN,
-    host: process.env.NEXT_PUBLIC_CONTENTSTACK_CUSTOM_HOST,
+    management_token: envConfig.CONTENTSTACK_MANAGEMENT_TOKEN,
+    host: envConfig.CONTENTSTACK_CUSTOM_HOST,
     ssr: true,
-    debug: true,
   },
   stackDetails: {
-    apiKey: process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY,
-    environment: process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT,
+    apiKey: envConfig.CONTENTSTACK_API_KEY,
+    environment: envConfig.CONTENTSTACK_ENVIRONMENT,
   },
   clientUrlParams: {
     protocol: 'https',
-    host: 'app.contentstack.com',
+    host: envConfig.CONTENTSTACK_APP_HOST,
     port: 443,
   },
-});
+}
 
-Stack.setHost(process.env.NEXT_PUBLIC_CONTENTSTACK_CUSTOM_HOST);
-ContentstackLivePreview.init(Stack);
+const Stack = contentstack.Stack(Obj);
+Stack.setHost(envConfig.CONTENTSTACK_CUSTOM_HOST);
+ContentstackLivePreview.init(Stack, {enable:true});
+
+export const onEntryChange = ContentstackLivePreview.onEntryChange;
+
 const renderOption = {
   ['span']: (node, next) => {
     return next(node.children);
   },
 };
-export const onEntryChange = ContentstackLivePreview.onEntryChange;
 
 export default {
   /**
@@ -97,6 +102,7 @@ export default {
           resolve(result[0]);
         },
         (error) => {
+          console.error(error);
           reject(error);
         }
       );

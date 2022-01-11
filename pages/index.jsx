@@ -1,87 +1,109 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import { addEditableTags } from '@contentstack/utils';
-import Stack, { onEntryChange } from '../sdk-plugin/index';
-import Layout from '../components/layout';
+import { connect } from 'react-redux';
+import { onEntryChange } from '../sdk-plugin/index';
+import { getHeaderRes, getFooterRes, getHomeRes } from '../helper/index';
 import RenderComponents from '../components/render-components';
+import { setFooter, setHeader, setPage } from '../redux/action/action';
+import store from '../redux/store';
 
-async function getPageData(entryUrl) {
-  const entryRes = await Stack.getEntryByUrl({
-    contentTypeUid: 'page',
-    entryUrl,
-    referenceFieldPath: ['page_components.from_blog.featured_blogs'],
-    jsonRtePath: [
-      'page_components.from_blog.featured_blogs.body',
-      'page_components.section_with_buckets.buckets.description',
-    ],
-  });
-  const headerRes = await Stack.getEntry({
-    contentTypeUid: 'header',
-    referenceFieldPath: ['navigation_menu.page_reference'],
-    jsonRtePath: ['notification_bar.announcement_text'],
-  });
-  const footerRes = await Stack.getEntry({
-    contentTypeUid: 'footer',
-    jsonRtePath: ['copyright'],
-  });
-
-  return [headerRes, footerRes, entryRes];
-}
-
-export default function Home({
-  header, footer, result, entryUrl,
-}) {
-  const [getHeader, setHeader] = useState(header);
-  const [getFooter, setFooter] = useState(footer);
+function Home(props) {
+  const { result, entryUrl } = props;
+  const {
+    main: {
+      header, footer, livePreview, liveEdit,
+    },
+  } = store.getState();
   const [getEntry, setEntry] = useState(result);
+  const [getLivePreview, setLivePreview] = useState(livePreview);
+  const [getLiveEdit, setLiveEdit] = useState(liveEdit);
+  const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
   async function fetchData() {
     try {
-      const [headerRes, footerRes, entryRes] = await getPageData(entryUrl);
-      setHeader(headerRes[0][0]);
-      setFooter(footerRes[0][0]);
-      setEntry(entryRes[0]);
+      const entryRes = await getHomeRes(entryUrl);
+      const headerRes = await getHeaderRes();
+      const footerRes = await getFooterRes();
+      console.log("live preview resp", entryRes);
+      setHeader(headerRes);
+      setFooter(footerRes);
+      // setPage(entryRes);
+      setEntry(entryRes);
     } catch (error) {
       console.error(error);
     }
   }
-  useEffect(() => {
-    onEntryChange(() => fetchData());
-  }, [onEntryChange]);
 
   useEffect(() => {
-    addEditableTags(getEntry, "page", true);
-    addEditableTags(getHeader, "header", true);
-    addEditableTags(getFooter, "footer", true);
-  }, [getEntry, getFooter, getHeader]);
+    setPage(result);
+  }, []);
+
+  // fot live Preview option
+  useEffect(() => {
+    console.log("enable live preview", getLivePreview);
+    onEntryChange(() => {
+      console.info('Enabling live preview ', getLivePreview);
+      if (getLivePreview) {
+        return fetchData();
+      }
+    });
+  }, [getLivePreview]);
+
+  store.subscribe(() => {
+    const check = store.getState().main;
+    console.log(check.livePreview !== getLivePreview);
+    console.log("state will be set", check.livePreview, getLivePreview);
+    if (check.livePreview !== getLivePreview) {
+      setLivePreview(check.livePreview);
+    }
+    if (check.liveEdit !== getLiveEdit) {
+      setLiveEdit(check.liveEdit);
+    }
+  });
+  console.log("check state for live preview", getLivePreview);
+  // for live Edit option
+  useEffect(() => {
+    if (getLiveEdit) {
+      console.info("Enabling live edit");
+      addEditableTags(getEntry, 'page', true);
+      addEditableTags(header, 'header', true);
+      addEditableTags(footer, 'footer', true);
+      forceUpdate();
+    } else {
+      console.info("Disabling live edit");
+      addEditableTags(getEntry, 'page', false);
+      addEditableTags(header, 'header', false);
+      addEditableTags(footer, 'footer', false);
+      forceUpdate();
+    }
+  }, [getLiveEdit]);
+
+  console.log(getEntry);
 
   return (
-    <Layout header={getHeader} footer={getFooter} page={getEntry}>
-      {getEntry.page_components && (
-        <RenderComponents
-          pageComponents={getEntry.page_components}
-          contentTypeUid="page"
-          entryUid={getEntry.uid}
-          locale={getEntry.locale}
-        />
-      )}
-    </Layout>
+    getEntry.page_components && (
+      <RenderComponents
+        pageComponents={getEntry.page_components}
+        contentTypeUid="page"
+        entryUid={getEntry.uid}
+        locale={getEntry.locale}
+      />
+    )
   );
 }
 
 export async function getServerSideProps(context) {
   try {
-    const [headerRes, footerRes, entryRes] = await getPageData(
-      context.resolvedUrl,
-    );
+    const entryRes = await getHomeRes(context.resolvedUrl);
     return {
       props: {
         entryUrl: context.resolvedUrl,
-        header: headerRes[0][0],
-        footer: footerRes[0][0],
-        result: entryRes[0],
+        result: entryRes,
       },
     };
   } catch (error) {
-    return { notFound: true };
+    return { notFound: false };
   }
 }
+
+export default connect(null, { setHeader, setFooter, setPage })(Home);

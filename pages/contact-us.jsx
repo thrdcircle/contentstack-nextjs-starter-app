@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import addEditableTags from "@contentstack/live-preview-utils";
-import Stack, { onEntryChange } from "../sdk-plugin/index";
-import Layout from "../components/layout";
+import addEditableTags from '@contentstack/live-preview-utils';
+import Stack, { onEntryChange } from '../sdk-plugin/index';
 
-import RenderComponents from "../components/render-components";
+import RenderComponents from '../components/render-components';
 
 async function getPageData(entryUrl) {
   const entryRes = await Stack.getEntryByUrl({
     contentTypeUid: 'page',
     entryUrl,
-    referenceFieldPath: ["page_components.from_blog.featured_blogs"],
-    jsonRtePath: ["page_components.section_with_html_code.description"],
+    referenceFieldPath: ['page_components.from_blog.featured_blogs'],
+    jsonRtePath: ['page_components.section_with_html_code.description'],
   });
   const headerRes = await Stack.getEntry({
     contentTypeUid: 'header',
@@ -38,9 +37,6 @@ export default function Contact({
       setHeader(headerRes[0][0]);
       setFooter(footerRes[0][0]);
       setEntry(entryRes[0]);
-      addEditableTags(entryRes[0], "page", true);
-      addEditableTags(headerRes[0][0], "header", true);
-      addEditableTags(footerRes[0][0], "footer", true);
     } catch (error) {
       console.error(error);
     }
@@ -48,17 +44,22 @@ export default function Contact({
   useEffect(() => {
     onEntryChange(() => fetchData());
   }, [onEntryChange]);
+
+  useEffect(() => {
+    addEditableTags(getEntry, 'page', true);
+    addEditableTags(getHeader, 'header', true);
+    addEditableTags(getFooter, 'footer', true);
+  }, [getEntry, getFooter, getHeader]);
+
   return (
-    <Layout header={getHeader} footer={getFooter} page={getEntry}>
-      {getEntry.page_components && (
-        <RenderComponents
-          pageComponents={getEntry.page_components}
-          contentTypeUid="page"
-          entryUid={getEntry.uid}
-          locale={getEntry.locale}
-        />
-      )}
-    </Layout>
+    getEntry.page_components && (
+      <RenderComponents
+        pageComponents={getEntry.page_components}
+        contentTypeUid="page"
+        entryUid={getEntry.uid}
+        locale={getEntry.locale}
+      />
+    )
   );
 }
 
@@ -70,8 +71,6 @@ export async function getServerSideProps(context) {
     return {
       props: {
         entryUrl: context.resolvedUrl,
-        header: headerRes[0][0],
-        footer: footerRes[0][0],
         result: entryRes[0],
       },
     };
